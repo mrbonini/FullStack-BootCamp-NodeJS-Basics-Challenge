@@ -8,6 +8,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+const repositories = [];
+
 function validateRequest( request, response, next ) {
   const { title, url, techs } = request.body;
   const { id } = request.params;
@@ -19,10 +21,12 @@ function validateRequest( request, response, next ) {
   };
 
   const errors = [];
-  
   const repositoryIndex = repositories.findIndex( repository => repository.url === url);
-  if ( repositoryIndex >= 0 || (repositoryIndex >= 0 && repository.id !== id)) {
-    errors.push('Já existe um repositório com está URL no Banco de Dados');
+
+  if ( id && repositoryIndex >= 0 && repositories[repositoryIndex].id !== id ) {
+    errors.push('Já existe um repositório com esta URL no Banco de Dados');
+  } else if ( !id && repositoryIndex >= 0 ){
+    errors.push('Já existe um repositório com esta URL no Banco de Dados');
   };
 
   if ( !Array.isArray(techs)) {
@@ -49,17 +53,16 @@ function validateRequest( request, response, next ) {
 function validateId( request, response, next ) {
   const { id } = request.params;
   const repositoryIndex = repositories.findIndex( repository => repository.id === id );
-  console.log(repositoryIndex);
+  
   if ( repositoryIndex === -1 ) {
-    return response.status(404).json({ error: `ID ${id} not found`});
+    return response.status(400).json({ error: `ID ${id} not found`});
   };
 
+  request.body.repositoryIndex = repositoryIndex;
   return next();
 };
 
 app.use('/repositories/:id', validateId);
-
-const repositories = [];
 
 app.get("/repositories", (request, response) => {
   response.status(200).json(repositories);
@@ -85,16 +88,15 @@ app.put("/repositories/:id", validateRequest, (request, response) => {
   const { title, url, techs } = request.body;
   const { id } = request.params;
 
-  const repositoryIndex = repositories.findIndex( repository => repository.id = id);
-  console.log(repositoryIndex);
-  console.log(repositories[repositoryIndex]);
+  const repositoryIndex = repositories.findIndex( repository => repository.id === id );
+  
   const updatedRepository = {
     ...repositories[repositoryIndex],
     title,
-    url,techs,
+    url,
+    techs,
   };
 
-  // console.log(updatedRepository);
   repositories.splice(repositoryIndex, 1);
   repositories.push(updatedRepository);
 
@@ -102,11 +104,23 @@ app.put("/repositories/:id", validateRequest, (request, response) => {
 });
 
 app.delete("/repositories/:id", (request, response) => {
-  // TODO
+  const { id } = request.params;
+
+  const repositoryIndex = repositories.findIndex( repository => repository.id === id );
+
+  repositories.splice(repositoryIndex, 1);
+  response.status(204).send();
 });
 
 app.post("/repositories/:id/like", (request, response) => {
-  // TODO
+  const { id } = request.params;
+
+  const repositoryIndex = repositories.findIndex( repository => repository.id === id);
+  const likedRepo = repositories[repositoryIndex]
+  
+  likedRepo.likes = likedRepo.likes + 1;
+  
+  response.status(200).json(likedRepo);
 });
 
 module.exports = app;
