@@ -1,0 +1,3 @@
+[submodule "ChallengeOrigin"]
+	path = ChallengeOrigin
+	url = https://github.com/Rocketseat/gostack-template-conceitos-nodejs
