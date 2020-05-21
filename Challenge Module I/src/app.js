@@ -20,33 +20,6 @@ function validateRequest( request, response, next ) {
     techs
   };
 
-  const errors = [];
-  const repositoryIndex = repositories.findIndex( repository => repository.url === url);
-
-  if ( id && repositoryIndex >= 0 && repositories[repositoryIndex].id !== id ) {
-    errors.push('Já existe um repositório com esta URL no Banco de Dados');
-  } else if ( !id && repositoryIndex >= 0 ){
-    errors.push('Já existe um repositório com esta URL no Banco de Dados');
-  };
-
-  if ( !Array.isArray(techs)) {
-    errors.push('O campo techs deve ser um Array.');
-  } else if (techs.findIndex( tech => typeof(tech) !== 'string' ) >= 0) {
-    errors.push('O campo techs deve ser um Array exclusivamente de Strings.');
-  };
-
-  if ( typeof(title) !== 'string' ) {
-    errors.push('O campo title deve ser uma String');
-  };
-
-  if ( typeof(url) !== 'string' || ( !url.includes('http://github.com/')) ) {
-    errors.push('O campo url não é um repositório GitHub');
-  };
-
-  if ( errors.length ) {
-    return response.status(400).json({ error: errors });
-  };
-
   return next();
 };
 
